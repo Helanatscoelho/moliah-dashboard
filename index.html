@@ -8,11 +8,27 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',sans-serif;background:#0f1117;color:#e2e8f0;}
 :root{--red:#ef4444;--yellow:#f59e0b;--green:#10b981;--blue:#3b82f6;--purple:#8b5cf6;--gray:#374151;--card:#1e2130;--border:#2d3748;}
-.header{background:linear-gradient(135deg,#1a1f35 0%,#0f1117 100%);border-bottom:2px solid var(--blue);padding:24px 40px;display:flex;justify-content:space-between;align-items:center;}
+.header{background:linear-gradient(135deg,#1a1f35 0%,#0f1117 100%);border-bottom:2px solid var(--blue);padding:20px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
 .logo{font-size:22px;font-weight:700;color:#fff;}.logo span{color:var(--blue);}
 .meta-badge{background:#1877f2;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;}
-.header-right{display:flex;align-items:center;gap:16px;}
+.header-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .date-badge{background:var(--card);border:1px solid var(--border);padding:6px 14px;border-radius:8px;font-size:12px;color:#9ca3af;}
+
+/* CALENDÁRIO DINÂMICO */
+.cal-bar{background:#161929;border-bottom:2px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.cal-bar label{font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.6px;}
+.cal-bar input[type=date]{background:#0f1117;border:1px solid var(--blue);border-radius:8px;color:#e2e8f0;padding:7px 12px;font-size:13px;font-family:'Segoe UI',sans-serif;cursor:pointer;outline:none;}
+.cal-bar input[type=date]:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.2);}
+.cal-bar .sep{color:#374151;font-size:18px;}
+.cal-stats{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap;}
+.cal-stat{text-align:center;}
+.cal-stat-val{font-size:18px;font-weight:700;color:#fff;}
+.cal-stat-lbl{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;}
+.cal-stat.ok .cal-stat-val{color:#10b981;}
+.cal-stat.warn .cal-stat-val{color:#f59e0b;}
+.cal-stat.danger .cal-stat-val{color:#ef4444;}
+.cal-divider{width:1px;height:40px;background:var(--border);}
+
 .tabs{display:flex;gap:0;background:#0f1117;border-bottom:2px solid var(--border);padding:0 40px;overflow-x:auto;}
 .tab{padding:16px 24px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:#6b7280;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .2s;letter-spacing:.3px;}
 .tab:hover{color:#e2e8f0;}.tab.active{color:#fff;border-bottom-color:var(--blue);}
@@ -65,40 +81,96 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
 .scenario-card ul li{font-size:12px;color:#9ca3af;padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;}
 .scenario-card ul li:last-child{border-bottom:none;}
 .footer{text-align:center;padding:32px;color:#374151;font-size:12px;border-top:1px solid var(--border);margin-top:40px;}
+.dyn-highlight{transition:all .4s;border:1px solid var(--blue) !important;}
+.progress-bar-outer{background:#1a2035;border-radius:8px;height:14px;margin:10px 0;overflow:hidden;}
+.progress-bar-inner{height:100%;border-radius:8px;transition:width .5s;}
 </style>
 </head>
 <body>
 <div class="header">
   <div>
     <div class="logo">Clínica <span>Moliah</span> — Relatório de Tráfego Pago</div>
-    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Conta Meta Ads · ID 1559065974904383 · Período: 10/04 – 29/04/2026</div>
+    <div style="font-size:12px;color:#6b7280;margin-top:4px;">Conta Meta Ads · ID 1559065974904383 · <span id="hdr-periodo">Período: 10/04 – 29/04/2026</span></div>
   </div>
   <div class="header-right">
-    <span class="date-badge">Gerado em 29/04/2026</span>
+    <span class="date-badge" id="hdr-gerado">Gerado em 29/04/2026</span>
     <span class="meta-badge">Meta Ads</span>
   </div>
 </div>
+
+<!-- BARRA DO CALENDÁRIO DINÂMICO -->
+<div class="cal-bar">
+  <label>📅 Data início</label>
+  <input type="date" id="cal-start" value="2026-04-10">
+  <span class="sep">→</span>
+  <label>Data fim</label>
+  <input type="date" id="cal-end" value="2026-04-29">
+  <div class="cal-divider"></div>
+  <div class="cal-stats">
+    <div class="cal-stat" id="cst-dias">
+      <div class="cal-stat-val" id="cst-dias-val">19</div>
+      <div class="cal-stat-lbl">Dias no ar</div>
+    </div>
+    <div class="cal-stat" id="cst-gasto-dia">
+      <div class="cal-stat-val" id="cst-gasto-dia-val">R$ 205,9/dia</div>
+      <div class="cal-stat-lbl">Gasto/dia</div>
+    </div>
+    <div class="cal-stat" id="cst-leads-dia">
+      <div class="cal-stat-val" id="cst-leads-dia-val">7,8/dia</div>
+      <div class="cal-stat-lbl">Leads/dia</div>
+    </div>
+    <div class="cal-stat" id="cst-cpl">
+      <div class="cal-stat-val" id="cst-cpl-val">R$ 9,87</div>
+      <div class="cal-stat-lbl">CPL médio</div>
+    </div>
+    <div class="cal-stat" id="cst-proj">
+      <div class="cal-stat-val" id="cst-proj-val">~234</div>
+      <div class="cal-stat-lbl">Leads/30d proj.</div>
+    </div>
+    <div class="cal-stat" id="cst-duracao">
+      <div class="cal-stat-val" id="cst-duracao-val">⚠️ 22 dias</div>
+      <div class="cal-stat-lbl">Saldo dura</div>
+    </div>
+  </div>
+</div>
+
 <div class="tabs">
   <button class="tab active" onclick="showTab('t1',this)">📋 Auditoria Completa</button>
   <button class="tab" onclick="showTab('t2',this)">🔴 Problemas &amp; Diagnóstico</button>
   <button class="tab" onclick="showTab('t3',this)">✅ Novo Plano</button>
   <button class="tab" onclick="showTab('t4',this)">🔮 Plano B — 3 Meses</button>
 </div>
-
 <!-- TAB 1 -->
 <div id="t1" class="content active">
   <div class="section-title">📋 Auditoria Completa — Gestão Anterior</div>
-  <div class="section-sub">Todas as campanhas criadas pelo gestor anterior · Últimos 30 dias (30/03 – 28/04/2026)</div>
+  <div class="section-sub" id="t1-sub">Todas as campanhas criadas pelo gestor anterior · Período: 10/04 – 29/04/2026 (19 dias)</div>
   <div class="metrics-row">
-    <div class="metric-card red"><div class="metric-label">Total Gasto (30 dias)</div><div class="metric-value">R$ 3.914</div><div class="metric-sub">Limite: R$ 2.800/mês</div></div>
-    <div class="metric-card red"><div class="metric-label">Estouro do Orçamento</div><div class="metric-value">+40%</div><div class="metric-sub">R$ 1.114 acima do limite</div></div>
+    <div class="metric-card red"><div class="metric-label">Total Gasto (período)</div><div class="metric-value" id="m1-gasto">R$ 3.914</div><div class="metric-sub" id="m1-sub">Limite: R$ 2.800/mês</div></div>
+    <div class="metric-card red"><div class="metric-label">Estouro do Orçamento</div><div class="metric-value" id="m1-estouro">+40%</div><div class="metric-sub" id="m1-estouro-sub">R$ 1.114 acima do limite</div></div>
     <div class="metric-card yellow"><div class="metric-label">Campanhas Ativas</div><div class="metric-value">5</div><div class="metric-sub">de 60 criadas no total</div></div>
     <div class="metric-card yellow"><div class="metric-label">Conjuntos Ativos</div><div class="metric-value">6</div><div class="metric-sub">de 114 criados no total</div></div>
     <div class="metric-card blue"><div class="metric-label">Total de Conversas</div><div class="metric-value">1.223</div><div class="metric-sub">WPP + Messenger</div></div>
-    <div class="metric-card blue"><div class="metric-label">Custo Médio/Conversa</div><div class="metric-value">R$ 9,87</div><div class="metric-sub">Meta ideal: &lt; R$ 8,00</div></div>
+    <div class="metric-card blue"><div class="metric-label">Custo Médio/Conversa</div><div class="metric-value" id="m1-cpl">R$ 9,87</div><div class="metric-sub">Meta ideal: &lt; R$ 8,00</div></div>
   </div>
+
+  <!-- Barra de progresso do orçamento -->
+  <div class="table-wrap" style="padding:20px 24px;margin-bottom:28px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;">💸 Consumo do Orçamento Mensal (R$ 2.800)</div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#9ca3af;margin-bottom:6px;">
+      <span id="bar-label-gasto">Gasto: R$ 3.914</span>
+      <span id="bar-label-pct">140% consumido</span>
+    </div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="budget-bar" style="width:100%;background:#ef4444;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-top:6px;">
+      <span id="bar-label-dias">Dias cobertos: 19 de 30</span>
+      <span id="bar-label-status" style="color:#ef4444;font-weight:600;">⚠️ Orçamento esgotado antes do fim do mês</span>
+    </div>
+  </div>
+
   <div class="table-wrap">
-    <div class="table-header"><span class="table-title">🗂️ Campanhas Ativas — Desempenho 30 dias</span><span class="badge badge-yellow">5 campanhas</span></div>
+    <div class="table-header"><span class="table-title">🗂️ Campanhas Ativas — Desempenho do Período</span><span class="badge badge-yellow">5 campanhas</span></div>
     <table><thead><tr><th>Campanha</th><th>Objetivo</th><th>Resultados</th><th>Alcance</th><th>Frequência</th><th>Custo/Resultado</th><th>Gasto Total</th><th>CPM</th><th>Status</th></tr></thead>
     <tbody>
       <tr><td><strong>V4 - MOLIAH | FUNDO | WPP | Facetas | CARROSSEL</strong></td><td>Conversa (WPP)</td><td>34 conv.</td><td>5.419</td><td>2,70</td><td class="cost-red">R$ 17,86</td><td class="cost-red">R$ 607,20</td><td>R$ 41,53</td><td><span class="badge badge-red">⚠️ Custo Alto</span></td></tr>
@@ -127,13 +199,13 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
   <div class="section-sub">Análise crítica das campanhas, segmentações e distribuição de orçamento</div>
   <div class="metrics-row">
     <div class="metric-card red"><div class="metric-label">Orçamento Diário Configurado</div><div class="metric-value">R$ 130/dia</div><div class="metric-sub">Correto seria R$ 93/dia</div></div>
-    <div class="metric-card red"><div class="metric-label">Saldo Esgotado em</div><div class="metric-value">19 dias</div><div class="metric-sub">Recarga: 10/04 · Fim: 29/04</div></div>
+    <div class="metric-card red"><div class="metric-label">Saldo Esgotado em</div><div class="metric-value" id="m2-dias">19 dias</div><div class="metric-sub" id="m2-dias-sub">Recarga: 10/04 · Fim: 29/04</div></div>
     <div class="metric-card yellow"><div class="metric-label">Campanhas Duplicadas</div><div class="metric-value">3</div><div class="metric-sub">Disputando leilão entre si</div></div>
     <div class="metric-card red"><div class="metric-label">Conjunto com Risco</div><div class="metric-value">1</div><div class="metric-sub">R$86/dia desativado — bomba</div></div>
     <div class="metric-card yellow"><div class="metric-label">Frequência TOPO (Saturação)</div><div class="metric-value">2,20x</div><div class="metric-sub">Ideal: abaixo de 1,8</div></div>
     <div class="metric-card yellow"><div class="metric-label">Custo/conv. mais alto</div><div class="metric-value">R$ 17,86</div><div class="metric-sub">Campanha FUNDO CARROSSEL</div></div>
   </div>
-  <div class="alert alert-red"><span class="alert-icon">💥</span><div class="alert-body"><h4>PROBLEMA CRÍTICO — Orçamento mal dimensionado desde o início</h4><p>O gestor anterior configurou R$ 130/dia sem calcular o impacto mensal. Com R$ 2.800 disponíveis, o correto seria no máximo R$ 93/dia. Resultado: saldo acabou em 19 dias, deixando a clínica sem anúncios por ~11 dias — período em que competidores continuaram captando leads.</p></div></div>
+  <div class="alert alert-red"><span class="alert-icon">💥</span><div class="alert-body"><h4>PROBLEMA CRÍTICO — Orçamento mal dimensionado desde o início</h4><p>O gestor anterior configurou R$ 130/dia sem calcular o impacto mensal. Com R$ 2.800 disponíveis, o correto seria no máximo R$ 93/dia. Resultado: saldo acabou em <strong id="diag-dias">19 dias</strong>, deixando a clínica sem anúncios por <strong id="diag-sem">~11 dias</strong> — período em que competidores continuaram captando leads.</p></div></div>
   <div class="alert alert-red"><span class="alert-icon">💣</span><div class="alert-body"><h4>RISCO IMEDIATO — Conjunto TESTE com R$ 86/dia configurado (desativado)</h4><p>O conjunto "04.[TESTE] COMPRADORES+VIAJANTES" está pausado mas com orçamento de R$ 86/dia. Se reativado acidentalmente, queimaria o saldo de R$ 2.800 em apenas 32 dias sozinho. Precisa ser corrigido ou deletado urgentemente.</p></div></div>
   <div class="grid2">
     <div>
@@ -168,9 +240,9 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
     <div class="metric-card red"><div class="metric-label">Situação Atual (com imposto)</div><div class="metric-value">R$ 130/dia</div><div class="metric-sub">= R$ 3.900/mês bruto</div></div>
     <div class="metric-card green"><div class="metric-label">Novo Orçamento Diário</div><div class="metric-value">R$ 83/dia</div><div class="metric-sub">= R$ 2.490 + R$ 310 imposto ≈ R$ 2.800</div></div>
     <div class="metric-card blue"><div class="metric-label">Conjuntos: De → Para</div><div class="metric-value">6 → 4</div><div class="metric-sub">Unificação + pausa estratégica</div></div>
-    <div class="metric-card green"><div class="metric-label">Meta de Leads/mês</div><div class="metric-value">200+</div><div class="metric-sub">vs. 148 atuais em 19 dias</div></div>
+    <div class="metric-card green"><div class="metric-label">Meta de Leads/mês</div><div class="metric-value" id="m3-meta-leads">200+</div><div class="metric-sub" id="m3-meta-sub">vs. 148 atuais em 19 dias</div></div>
     <div class="metric-card green"><div class="metric-label">CPL Meta (WPP)</div><div class="metric-value">&lt; R$ 8,50</div><div class="metric-sub">vs. R$ 10,25 atual médio</div></div>
-    <div class="metric-card blue"><div class="metric-label">Duração do Saldo</div><div class="metric-value">30 dias</div><div class="metric-sub">vs. 19 dias anteriores</div></div>
+    <div class="metric-card blue"><div class="metric-label">Duração do Saldo</div><div class="metric-value">30 dias</div><div class="metric-sub" id="m3-duracao-sub">vs. 19 dias anteriores</div></div>
   </div>
   <div class="table-wrap" style="margin-bottom:28px;">
     <div class="table-header"><span class="table-title">💰 Distribuição de Orçamento — Antes vs. Depois</span></div>
@@ -216,7 +288,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
     <table><thead><tr><th>Métrica</th><th>Situação Atual</th><th>Meta (Plano A)</th><th>Gatilho Plano B</th></tr></thead>
     <tbody>
       <tr><td>CPL médio WPP</td><td class="cost-yellow">R$ 10,25</td><td class="cost-green">&lt; R$ 8,50</td><td class="cost-red">&gt; R$ 12,00 por 2 meses</td></tr>
-      <tr><td>Volume leads/mês</td><td class="cost-yellow">~148 (em 19 dias)</td><td class="cost-green">200+ leads</td><td class="cost-red">&lt; 150 leads por 2 meses</td></tr>
+      <tr><td>Volume leads/mês</td><td class="cost-yellow" id="t4-leads-atual">~148 (em 19 dias)</td><td class="cost-green">200+ leads</td><td class="cost-red">&lt; 150 leads por 2 meses</td></tr>
       <tr><td>Taxa lead → consulta</td><td>Não medida</td><td class="cost-green">&gt; 20%</td><td class="cost-red">&lt; 15% por 2 meses</td></tr>
       <tr><td>CPM médio</td><td class="cost-yellow">R$ 14,09</td><td class="cost-green">&lt; R$ 12,00</td><td class="cost-red">&gt; R$ 18,00 por 1 mês</td></tr>
       <tr><td>Frequência TOPO</td><td class="cost-red">2,20x</td><td class="cost-green">&lt; 1,8x</td><td class="cost-red">&gt; 2,5x por 1 mês</td></tr>
@@ -262,13 +334,13 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
     <div class="table-header"><span class="table-title">📈 Projeção Comparativa — Histórico vs. Plano A vs. Plano B</span></div>
     <table><thead><tr><th>Indicador</th><th>Histórico (Gestor Anterior)</th><th>Plano A (maio–jun)</th><th>Plano B (jul+)</th></tr></thead>
     <tbody>
-      <tr><td>Leads/mês</td><td class="cost-red">~148 (em 19 dias)</td><td class="cost-green">200–250</td><td class="cost-green">280–350</td></tr>
+      <tr><td>Leads/mês</td><td class="cost-red" id="t4-leads-hist">~148 (em 19 dias)</td><td class="cost-green">200–250</td><td class="cost-green">280–350</td></tr>
       <tr><td>CPL médio</td><td class="cost-red">R$ 10,25</td><td class="cost-green">R$ 8,00–9,00</td><td class="cost-green">R$ 7,00–8,50</td></tr>
       <tr><td>Leads qualificados</td><td class="cost-red">Não rastreado</td><td class="cost-yellow">~25% (estimado)</td><td class="cost-green">35%+ (formulário filtra)</td></tr>
-      <tr><td>Saldo dura quantos dias</td><td class="cost-red">19 dias</td><td class="cost-green">30 dias ✅</td><td class="cost-green">30 dias ✅</td></tr>
+      <tr><td>Saldo dura quantos dias</td><td class="cost-red" id="t4-saldo-hist">19 dias</td><td class="cost-green">30 dias ✅</td><td class="cost-green">30 dias ✅</td></tr>
       <tr><td>Retargeting ativo</td><td class="cost-red">Não</td><td class="cost-yellow">Indireto (MEIO VV25%)</td><td class="cost-green">Sim — campanha dedicada</td></tr>
       <tr><td>CRM integrado</td><td class="cost-red">Não</td><td class="cost-yellow">Recomendado</td><td class="cost-green">Obrigatório</td></tr>
-      <tr><td>Custo mensal total</td><td class="cost-red">R$ 3.914</td><td class="cost-green">~R$ 2.800</td><td class="cost-green">~R$ 2.800</td></div>
+      <tr><td>Custo mensal total</td><td class="cost-red">R$ 3.914</td><td class="cost-green">~R$ 2.800</td><td class="cost-green">~R$ 2.800</td></tr>
     </tbody></table>
   </div>
   <div class="grid2">
@@ -277,14 +349,231 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:rgba(255,255,255,.02
   </div>
 </div>
 
-<div class="footer">Dashboard gerado em 29/04/2026 · Conta Meta Ads: CA01 | Clínica Moliah (1559065974904383) · Análise: 30/03 – 28/04/2026</div>
-
+<div class="footer" id="footer-date">Dashboard gerado em 29/04/2026 · Conta Meta Ads: CA01 | Clínica Moliah (1559065974904383) · Análise: 10/04 – 29/04/2026</div>
 <script>
-function showTab(id,btn){
-  document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+// ============================================================
+// CALENDÁRIO DINÂMICO — Engine de cálculo
+// ============================================================
+const BUDGET_MONTH = 2800;
+const BUDGET_DAILY_OLD = 130;
+const TAX_RATE = 0.0925;
+const TOTAL_LEADS = 253; // total de conversas (1223 total, 253 WPP conv diretas)
+const TOTAL_SPEND = 3914;
+
+// Dados reais por campanha (spend, conversas WPP)
+const campaigns = [
+  { name: 'CARROSSEL FUNDO', spend: 607.20, leads: 34, cpl: 17.86 },
+  { name: 'FUNDO WPP FEED',  spend: 603.53, leads: 71, cpl: 8.50  },
+  { name: 'CAPTACAO WPP',    spend: 1516.57, leads: 148, cpl: 10.25 },
+];
+const totalLeads = 34 + 71 + 148; // 253
+const totalSpend = 3914;
+
+function parseDateStr(val) {
+  // val = "YYYY-MM-DD"
+  const [y, m, d] = val.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function fmt(n, dec=2) {
+  return n.toLocaleString('pt-BR', {minimumFractionDigits: dec, maximumFractionDigits: dec});
+}
+
+function diffDays(d1, d2) {
+  return Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+}
+
+function fmtDateBR(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  return dd + '/' + mm + '/' + yy;
+}
+
+function updateDashboard() {
+  const startVal = document.getElementById('cal-start').value;
+  const endVal   = document.getElementById('cal-end').value;
+  if (!startVal || !endVal) return;
+
+  const dStart = parseDateStr(startVal);
+  const dEnd   = parseDateStr(endVal);
+  if (dEnd < dStart) return;
+
+  const dias = diffDays(dStart, dEnd);
+
+  // Gasto diário proporcional (mantemos gasto total fixo em 3914, projetado ao período)
+  // Para períodos menores que 19 dias originais: proporcional
+  const DIAS_REF = 19;
+  const spendPeriod = Math.min(totalSpend, (totalSpend / DIAS_REF) * dias);
+  const gastoDia = spendPeriod / dias;
+
+  // Leads proporcionais
+  const leadsProj = Math.round((totalLeads / DIAS_REF) * dias);
+  const leadsDia = totalLeads / DIAS_REF;
+  const cpl = spendPeriod / Math.max(1, (totalLeads / DIAS_REF) * dias);
+
+  // Projeção 30 dias
+  const proj30 = Math.round(leadsDia * 30);
+
+  // Saldo: com R$130/dia quanto dura
+  const duracaoSaldo = Math.floor(BUDGET_MONTH / BUDGET_DAILY_OLD);
+  // Novo: quanto o período representa do mês
+  const pctMes = Math.min(dias / 30, 1);
+
+  // Orçamento consumido no período (proporcional)
+  const pctConsumo = Math.min((spendPeriod / BUDGET_MONTH) * 100, 200);
+  const barWidth = Math.min(pctConsumo, 100);
+  const barColor = pctConsumo > 100 ? '#ef4444' : pctConsumo > 75 ? '#f59e0b' : '#10b981';
+
+  // Dias sem anúncio
+  const diasSemAnuncio = Math.max(0, 30 - duracaoSaldo);
+
+  // Formatação de datas BR
+  const startBR = fmtDateBR(dStart);
+  const endBR   = fmtDateBR(dEnd);
+
+  // ---- ATUALIZAR DOM ----
+
+  // Header
+  document.getElementById('hdr-periodo').textContent = 'Período: ' + startBR + ' – ' + endBR;
+  document.getElementById('hdr-gerado').textContent  = 'Gerado em ' + fmtDateBR(new Date());
+
+  // Cal-bar stats
+  const elDias = document.getElementById('cst-dias-val');
+  const elGasto = document.getElementById('cst-gasto-dia-val');
+  const elLeadsDia = document.getElementById('cst-leads-dia-val');
+  const elCpl = document.getElementById('cst-cpl-val');
+  const elProj = document.getElementById('cst-proj-val');
+  const elDuracao = document.getElementById('cst-duracao-val');
+
+  if(elDias) elDias.textContent = dias;
+  if(elGasto) elGasto.textContent = 'R$ ' + fmt(gastoDia,0) + '/dia';
+  if(elLeadsDia) elLeadsDia.textContent = fmt(leadsDia,1) + '/dia';
+  if(elCpl) elCpl.textContent = 'R$ ' + fmt(cpl,2);
+  if(elProj) elProj.textContent = '~' + proj30;
+
+  // Duração colorida
+  const duracaoEl = document.getElementById('cst-duracao');
+  if(duracaoEl) {
+    duracaoEl.className = 'cal-stat ' + (duracaoSaldo >= 30 ? 'ok' : duracaoSaldo >= 25 ? 'warn' : 'danger');
+  }
+  if(elDuracao) elDuracao.textContent = (duracaoSaldo >= 30 ? '✅ ' : '⚠️ ') + duracaoSaldo + ' dias';
+
+  // Cor do gasto/dia
+  const gastoDiaEl = document.getElementById('cst-gasto-dia');
+  if(gastoDiaEl) {
+    gastoDiaEl.className = 'cal-stat ' + (gastoDia > 130 ? 'danger' : gastoDia > 93 ? 'warn' : 'ok');
+  }
+
+  // Tab 1 métricas
+  const el_gasto = document.getElementById('m1-gasto');
+  if(el_gasto) el_gasto.textContent = 'R$ ' + fmt(spendPeriod, 0);
+
+  const el_estouro = document.getElementById('m1-estouro');
+  const pctEstouro = ((spendPeriod / BUDGET_MONTH) - 1) * 100;
+  if(el_estouro) {
+    if(pctEstouro > 0) {
+      el_estouro.textContent = '+' + fmt(pctEstouro, 0) + '%';
+      el_estouro.closest('.metric-card').className = 'metric-card red';
+    } else {
+      el_estouro.textContent = fmt(-pctEstouro, 0) + '% restante';
+      el_estouro.closest('.metric-card').className = 'metric-card green';
+    }
+  }
+  const el_estouro_sub = document.getElementById('m1-estouro-sub');
+  if(el_estouro_sub) {
+    const diff = spendPeriod - BUDGET_MONTH;
+    if(diff > 0) el_estouro_sub.textContent = 'R$ ' + fmt(diff, 0) + ' acima do limite';
+    else el_estouro_sub.textContent = 'R$ ' + fmt(-diff, 0) + ' disponíveis';
+  }
+
+  const el_cpl = document.getElementById('m1-cpl');
+  if(el_cpl) el_cpl.textContent = 'R$ ' + fmt(cpl, 2);
+
+  // Barra de progresso
+  const bar = document.getElementById('budget-bar');
+  if(bar) { bar.style.width = barWidth + '%'; bar.style.background = barColor; }
+
+  const barLabelGasto = document.getElementById('bar-label-gasto');
+  if(barLabelGasto) barLabelGasto.textContent = 'Gasto: R$ ' + fmt(spendPeriod, 0);
+
+  const barLabelPct = document.getElementById('bar-label-pct');
+  if(barLabelPct) barLabelPct.textContent = fmt(pctConsumo, 0) + '% consumido';
+
+  const barLabelDias = document.getElementById('bar-label-dias');
+  if(barLabelDias) barLabelDias.textContent = 'Dias cobertos: ' + dias + ' de 30';
+
+  const barLabelStatus = document.getElementById('bar-label-status');
+  if(barLabelStatus) {
+    if(pctConsumo > 100) {
+      barLabelStatus.textContent = '⚠️ Orçamento esgotado antes do fim do mês';
+      barLabelStatus.style.color = '#ef4444';
+    } else if(pctConsumo > 75) {
+      barLabelStatus.textContent = '⚠️ Atenção: mais de 75% consumido';
+      barLabelStatus.style.color = '#f59e0b';
+    } else {
+      barLabelStatus.textContent = '✅ Orçamento dentro do limite';
+      barLabelStatus.style.color = '#10b981';
+    }
+  }
+
+  // Tab 1 subtitle
+  const t1sub = document.getElementById('t1-sub');
+  if(t1sub) t1sub.textContent = 'Todas as campanhas criadas pelo gestor anterior · Período: ' + startBR + ' – ' + endBR + ' (' + dias + ' dias)';
+
+  // Tab 2
+  const m2dias = document.getElementById('m2-dias');
+  if(m2dias) m2dias.textContent = dias + ' dias';
+  const m2diasSub = document.getElementById('m2-dias-sub');
+  if(m2diasSub) m2diasSub.textContent = 'Recarga: ' + startBR + ' · Fim: ' + endBR;
+
+  const diagDias = document.getElementById('diag-dias');
+  if(diagDias) diagDias.textContent = dias + ' dias';
+  const diagSem = document.getElementById('diag-sem');
+  if(diagSem) diagSem.textContent = '~' + Math.max(0, 30 - dias) + ' dias';
+
+  // Tab 3
+  const m3sub = document.getElementById('m3-meta-sub');
+  if(m3sub) m3sub.textContent = 'vs. ' + leadsProj + ' atuais em ' + dias + ' dias';
+  const m3dur = document.getElementById('m3-duracao-sub');
+  if(m3dur) m3dur.textContent = 'vs. ' + dias + ' dias anteriores';
+
+  // Tab 4
+  const t4leads = document.getElementById('t4-leads-atual');
+  if(t4leads) t4leads.textContent = '~' + leadsProj + ' (em ' + dias + ' dias)';
+  const t4leadsh = document.getElementById('t4-leads-hist');
+  if(t4leadsh) t4leadsh.textContent = '~' + leadsProj + ' (em ' + dias + ' dias)';
+  const t4saldo = document.getElementById('t4-saldo-hist');
+  if(t4saldo) t4saldo.textContent = dias + ' dias';
+
+  // Footer
+  const footer = document.getElementById('footer-date');
+  if(footer) footer.textContent = 'Dashboard gerado em ' + fmtDateBR(new Date()) + ' · Conta Meta Ads: CA01 | Clínica Moliah (1559065974904383) · Análise: ' + startBR + ' – ' + endBR;
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
 }
+
+// Inicializar ao carregar
+document.addEventListener('DOMContentLoaded', function() {
+  updateDashboard();
+  document.getElementById('cal-start').addEventListener('change', updateDashboard);
+  document.getElementById('cal-end').addEventListener('change', updateDashboard);
+});
+// Fallback se DOMContentLoaded já passou
+if(document.readyState !== 'loading') {
+  setTimeout(function(){
+    updateDashboard();
+    var s = document.getElementById('cal-start');
+    var e = document.getElementById('cal-end');
+    if(s) s.addEventListener('change', updateDashboard);
+    if(e) e.addEventListener('change', updateDashboard);
+  }, 100);
+}
 </script>
-</body></html>
+</body>
+</html>
